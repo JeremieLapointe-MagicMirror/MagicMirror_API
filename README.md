@@ -1,1 +1,3 @@
 # MagicMirror_API
+
+AJOUTER UN README
