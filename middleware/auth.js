@@ -1,4 +1,4 @@
-// inspiré de projet technologiques
+//Inspiré du projet ivocationelle
 const jwt = require("jsonwebtoken");
 
 const verifyTokenUser = (req, res, next) => {
@@ -12,8 +12,8 @@ const verifyTokenUser = (req, res, next) => {
         .status(401)
         .send("Invalid User Bearer Token, please login again");
     default: //Good Token
-      global.email = tokenAnduser.email;
-      global.type = tokenAnduser.type;
+      email = tokenAnduser.email;
+      type = tokenAnduser.type;
       return next();
   }
 };
@@ -32,8 +32,8 @@ const verifyTokenAdmin = (req, res, next) => {
       //But check if it is of type admin
       if (tokenAnduser.email.type != "admin")
         return res.status(401).send("Invalid Token, must be adminstrator");
-      global.email = tokenAnduser.email;
-      global.type = tokenAnduser.type;
+      email = tokenAnduser.email;
+      type = tokenAnduser.type;
 
       return next();
   }
