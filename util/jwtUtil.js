@@ -4,8 +4,9 @@ const JWT_SIGN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const TOKEN_EXPIRE = process.env.BEARER_TOKEN_EXPIRE;
 
 module.exports = {
-  generateAccessToken: function (email) {
-    return jwt.sign({ email: email }, JWT_SIGN_SECRET, {
+  generateAccessToken: function (userData) {
+    // Désormais, nous attendons un objet userData structuré contenant id, email et type
+    return jwt.sign({ userData }, JWT_SIGN_SECRET, {
       expiresIn: TOKEN_EXPIRE,
     });
   },

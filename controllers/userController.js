@@ -109,7 +109,7 @@ exports.login = async function (req, res) {
         { where: { idUser: user.idUser } }
       );
 
-      // Génération du token JWT
+      // Génération du token JWT avec la structure correcte
       const token = jwtUtil.generateAccessToken({
         id: user.idUser,
         email: user.email,

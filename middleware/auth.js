@@ -4,39 +4,44 @@ const jwt = require("jsonwebtoken");
 const verifyTokenUser = (req, res, next) => {
   console.log("verifyToken");
   var tokenAnduser = { token: req.headers["authorization"] };
-  switch (verifyToken(tokenAnduser)) {
-    case -1: // No Token found
-      return res.status(403).send("A token is required for authentication");
-    case -2: // Invalid Token
-      return res
-        .status(401)
-        .send("Invalid User Bearer Token, please login again");
-    default: //Good Token
-      email = tokenAnduser.email;
-      type = tokenAnduser.type;
-      return next();
+  const result = verifyToken(tokenAnduser);
+
+  if (result === -1) {
+    return res.status(403).send("A token is required for authentication");
   }
+  if (result === -2) {
+    return res
+      .status(401)
+      .send("Invalid User Bearer Token, please login again");
+  }
+
+  // Stocker l'information de l'utilisateur dans req pour y accéder dans la route
+  req.user = tokenAnduser.user;
+  return next();
 };
 
 const verifyTokenAdmin = (req, res, next) => {
   console.log("verifyAdminToken");
   var tokenAnduser = { token: req.headers["authorization"] };
-  switch (verifyToken(tokenAnduser)) {
-    case -1: // No Token found
-      return res.status(403).send("A token is required for authentication");
-    case -2: // Invalid Token
-      return res
-        .status(401)
-        .send("Invalid User Bearer Token, please login again");
-    default: //Good Token
-      //But check if it is of type admin
-      if (tokenAnduser.email.type != "admin")
-        return res.status(401).send("Invalid Token, must be adminstrator");
-      email = tokenAnduser.email;
-      type = tokenAnduser.type;
+  const result = verifyToken(tokenAnduser);
 
-      return next();
+  if (result === -1) {
+    return res.status(403).send("A token is required for authentication");
   }
+  if (result === -2) {
+    return res
+      .status(401)
+      .send("Invalid User Bearer Token, please login again");
+  }
+
+  // Vérifier si c'est un administrateur
+  if (tokenAnduser.user.type !== "admin") {
+    return res.status(401).send("Invalid Token, must be administrator");
+  }
+
+  // Stocker l'information de l'utilisateur dans req
+  req.user = tokenAnduser.user;
+  return next();
 };
 
 //-1 : No Token found
@@ -46,19 +51,33 @@ function verifyToken(tokenAnduser) {
   if (!tokenAnduser.token) return -1;
   try {
     const bearer = tokenAnduser.token.split(" ");
-    const bearerToken = bearer[1];
+    if (bearer.length !== 2) return -2;
 
+    const bearerToken = bearer[1];
     const decoded = jwt.verify(bearerToken, process.env.ACCESS_TOKEN_SECRET);
 
-    tokenAnduser.email = decoded.email;
-    tokenAnduser.type = decoded.type;
+    // Extraire les informations utilisateur du token décodé
+    if (decoded.userData) {
+      // Nouveau format
+      tokenAnduser.user = decoded.userData;
+    } else if (decoded.email && typeof decoded.email === "object") {
+      // Format actuel (compatibilité)
+      tokenAnduser.user = {
+        id: decoded.email.id,
+        email: decoded.email.email,
+        type: decoded.email.type,
+      };
+    } else {
+      console.error("Invalid token structure");
+      return -2;
+    }
   } catch (err) {
+    console.error("JWT Verification Error:", err.message);
     return -2;
   }
   return 0;
 }
 
-//module.exports = verifyToken, verifyTokenAdmin;
 module.exports = {
   verifyTokenUser,
   verifyTokenAdmin,
