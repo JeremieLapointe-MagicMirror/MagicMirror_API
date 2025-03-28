@@ -25,10 +25,6 @@ const Mirror = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    active: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
     lastUpdate: {
       type: DataTypes.DATE,
       allowNull: true,
