@@ -95,7 +95,7 @@ exports.createMirror = async function (req, res) {
       return res.status(400).json({ message: "Le nom du miroir est requis" });
     }
 
-    // Créer le miroir
+    // Créer le miroir - sans le champ active ni status
     const mirror = await Mirror.create({
       name: tempName,
       config: config || null,
@@ -192,7 +192,7 @@ exports.updateMirror = async function (req, res) {
   }
 };
 
-// Mise à jour du statut d'un miroir
+// Mise à jour du statut d'un miroir - utiliser config au lieu de status
 exports.updateMirrorStatus = async function (req, res) {
   try {
     const mirrorId = req.params.id;
@@ -220,9 +220,14 @@ exports.updateMirrorStatus = async function (req, res) {
       return res.status(404).json({ message: "Miroir non trouvé" });
     }
 
-    // Vous devrez ajouter une colonne 'status' à votre modèle Mirror ou modifier la configuration
-    // Ici, nous supposons que le statut est stocké dans la configuration JSON
-    let config = mirror.config ? JSON.parse(mirror.config) : {};
+    // Au lieu d'utiliser une colonne 'status', stocker l'état dans la configuration JSON
+    let config = {};
+    try {
+      config = mirror.config ? JSON.parse(mirror.config) : {};
+    } catch (error) {
+      config = {};
+    }
+
     config.status = status;
 
     // Mettre à jour le miroir

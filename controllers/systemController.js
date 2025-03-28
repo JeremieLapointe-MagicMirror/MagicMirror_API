@@ -1,6 +1,6 @@
 const { Mirror, UserMirror } = require("../models");
 
-// Obtenir le statut d'un miroir
+// Obtenir le statut d'un miroir - en utilisant la configuration JSON
 exports.getMirrorStatus = async function (req, res) {
   try {
     const mirrorId = req.params.id;
@@ -27,7 +27,7 @@ exports.getMirrorStatus = async function (req, res) {
       return res.status(404).json({ message: "Miroir non trouvé" });
     }
 
-    // Extraire le statut de la configuration
+    // Extraire le statut de la configuration JSON
     let config = {};
     try {
       config = mirror.config ? JSON.parse(mirror.config) : {};
@@ -38,10 +38,10 @@ exports.getMirrorStatus = async function (req, res) {
 
     const status = {
       online: config.status?.online || false,
+      status: config.status || "offline",
       lastSeen: mirror.lastUpdate,
       ipAddress: mirror.ipAddress,
       version: config.version || "inconnue",
-      // Autres informations de statut pertinentes
     };
 
     return res.status(200).json({ status });
