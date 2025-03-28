@@ -1,6 +1,12 @@
 //Inspiré du projet ivocationelle
 const jwt = require("jsonwebtoken");
 
+const blacklistedTokens = new Set(); // Utilisation d'un Set pour stocker les tokens invalidés
+
+const isTokenBlacklisted = (token) => {
+  return blacklistedTokens.has(token);
+};
+
 const verifyTokenUser = (req, res, next) => {
   const token = req.headers["authorization"];
   if (!token)
