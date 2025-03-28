@@ -24,4 +24,11 @@ router.post("/login", userController.login);
  */
 router.get("/me", verifyTokenUser, userController.getCurrentUser);
 
+/**
+ * Route pour déconnexion
+ * POST /api/users/logout
+ * Déconnecte un utilisateur
+ */
+router.post("/logout", userController.logout);
+
 module.exports = router;

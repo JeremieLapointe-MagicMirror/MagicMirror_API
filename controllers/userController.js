@@ -161,3 +161,20 @@ exports.getCurrentUser = async function (req, res) {
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
+
+exports.logout = async function (req, res) {
+  try {
+    // Vérification du token JWT
+    const token = req.headers["authorization"];
+    if (!token) {
+      return res.status(403).send("A token is required for authentication");
+    }
+
+    // Suppression du token JWT de la réponse
+    res.clearCookie("token");
+    res.status(200).json({ message: "Déconnexion réussie" });
+  } catch (err) {
+    console.error("Erreur lors de la déconnexion:", err);
+    res.status(500).json({ message: "Erreur serveur lors de la déconnexion" });
+  }
+};
