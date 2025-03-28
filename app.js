@@ -7,9 +7,17 @@ app.use(express.json());
 
 // Importer les routes
 const userRoutes = require("./routes/userRoutes");
+const mirrorRoutes = require("./routes/mirrorRoutes");
+const widgetRoutes = require("./routes/widgetRoutes");
+const permissionRoutes = require("./routes/permissionRoutes");
+const systemRoutes = require("./routes/systemRoutes");
 
 // Utiliser les routes
 app.use("/api/users", userRoutes);
+app.use("/api/mirrors", mirrorRoutes);
+app.use("/api/mirrors/:id/widgets", widgetRoutes);
+app.use("/api/mirrors/:id/users", permissionRoutes);
+app.use("/api/mirrors/:id/system", systemRoutes);
 
 // Route de base pour tester
 app.get("/", (req, res) => {

@@ -14,12 +14,20 @@ const Mirror = sequelize.define(
       allowNull: false,
     },
     config: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(100000),
       allowNull: true,
     },
     ipAddress: {
       type: DataTypes.STRING(50),
       allowNull: true,
+    },
+    status: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
     lastUpdate: {
       type: DataTypes.DATE,
