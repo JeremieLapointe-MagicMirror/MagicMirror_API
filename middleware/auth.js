@@ -1,24 +1,11 @@
 //Inspiré du projet ivocationelle
 const jwt = require("jsonwebtoken");
 
-const blacklistedTokens = new Set(); // Utilisation d'un Set pour stocker les tokens invalidés
-
-const isTokenBlacklisted = (token) => {
-  return blacklistedTokens.has(token);
-};
-
 const verifyTokenUser = (req, res, next) => {
-  const token = req.headers["authorization"];
-  if (!token)
-    return res.status(403).send("A token is required for authentication");
+  console.log("verifyToken");
+  var tokenAnduser = { token: req.headers["authorization"] };
+  const result = verifyToken(tokenAnduser);
 
-  // Vérifiez si le token est dans la liste noire
-  if (isTokenBlacklisted(token)) {
-    return res.status(401).send("Token invalide, veuillez vous reconnecter");
-  }
-
-  // Vérification du token
-  const result = verifyToken(token);
   if (result === -1) {
     return res.status(403).send("A token is required for authentication");
   }
