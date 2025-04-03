@@ -1,7 +1,7 @@
 const { Mirror, UserMirror } = require("../models");
 
-// Obtenir le statut d'un miroir - en utilisant la configuration JSON
-exports.getMirrorStatus = async function (req, res) {
+// Obtenir les informations système d'un miroir
+exports.getMirrorInfo = async function (req, res) {
   try {
     const mirrorId = req.params.id;
     const userId = req.user.id;
@@ -27,28 +27,22 @@ exports.getMirrorStatus = async function (req, res) {
       return res.status(404).json({ message: "Miroir non trouvé" });
     }
 
-    // Extraire le statut de la configuration JSON
-    let config = {};
-    try {
-      config = mirror.config ? JSON.parse(mirror.config) : {};
-    } catch (error) {
-      console.error("Erreur lors du parsing de la configuration:", error);
-      config = {};
-    }
-
-    const status = {
-      online: config.status?.online || false,
-      status: config.status || "offline",
-      lastSeen: mirror.lastUpdate,
+    const systemInfo = {
+      mirrorId: mirror.idMirror,
+      name: mirror.name,
       ipAddress: mirror.ipAddress,
-      version: config.version || "inconnue",
+      lastSeen: mirror.lastUpdate,
     };
 
-    return res.status(200).json({ status });
+    return res.status(200).json({ system: systemInfo });
   } catch (err) {
-    console.error("Erreur lors de la récupération du statut:", err);
+    console.error(
+      "Erreur lors de la récupération des informations système:",
+      err
+    );
     return res.status(500).json({
-      message: "Erreur serveur lors de la récupération du statut",
+      message:
+        "Erreur serveur lors de la récupération des informations système",
       details: err.message,
     });
   }

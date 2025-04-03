@@ -15,13 +15,6 @@ router.post("/", verifyTokenUser, mirrorController.createMirror);
 // Mettre à jour un miroir
 router.put("/:id", verifyTokenUser, mirrorController.updateMirror);
 
-// Mettre à jour le statut d'un miroir
-router.patch(
-  "/:id/status",
-  verifyTokenUser,
-  mirrorController.updateMirrorStatus
-);
-
 // Supprimer un miroir
 router.delete("/:id", verifyTokenUser, mirrorController.deleteMirror);
 

@@ -21,10 +21,6 @@ const Mirror = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    status: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
     lastUpdate: {
       type: DataTypes.DATE,
       allowNull: true,

@@ -95,7 +95,7 @@ exports.createMirror = async function (req, res) {
       return res.status(400).json({ message: "Le nom du miroir est requis" });
     }
 
-    // Créer le miroir - sans le champ active ni status
+    // Créer le miroir
     const mirror = await Mirror.create({
       name: tempName,
       config: config || null,
@@ -187,66 +187,6 @@ exports.updateMirror = async function (req, res) {
     console.error("Erreur lors de la mise à jour du miroir:", err);
     return res.status(500).json({
       message: "Erreur serveur lors de la mise à jour du miroir",
-      details: err.message,
-    });
-  }
-};
-
-// Mise à jour du statut d'un miroir - utiliser config au lieu de status
-exports.updateMirrorStatus = async function (req, res) {
-  try {
-    const mirrorId = req.params.id;
-    const userId = req.user.id;
-    const { status } = req.body;
-
-    // Vérifier si l'utilisateur a accès au miroir
-    const userMirror = await UserMirror.findOne({
-      where: {
-        userId: userId,
-        mirrorId: mirrorId,
-      },
-    });
-
-    if (!userMirror) {
-      return res
-        .status(403)
-        .json({ message: "Accès non autorisé à ce miroir" });
-    }
-
-    // Récupérer le miroir
-    const mirror = await Mirror.findByPk(mirrorId);
-
-    if (!mirror) {
-      return res.status(404).json({ message: "Miroir non trouvé" });
-    }
-
-    // Au lieu d'utiliser une colonne 'status', stocker l'état dans la configuration JSON
-    let config = {};
-    try {
-      config = mirror.config ? JSON.parse(mirror.config) : {};
-    } catch (error) {
-      config = {};
-    }
-
-    config.status = status;
-
-    // Mettre à jour le miroir
-    await Mirror.update(
-      {
-        config: JSON.stringify(config),
-        lastUpdate: new Date(),
-      },
-      { where: { idMirror: mirrorId } }
-    );
-
-    return res.status(200).json({
-      message: "Statut du miroir mis à jour avec succès",
-      status: status,
-    });
-  } catch (err) {
-    console.error("Erreur lors de la mise à jour du statut:", err);
-    return res.status(500).json({
-      message: "Erreur serveur lors de la mise à jour du statut",
       details: err.message,
     });
   }
