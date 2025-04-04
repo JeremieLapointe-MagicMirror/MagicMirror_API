@@ -7,7 +7,7 @@ const mirrorController = require("../controllers/mirrorController");
 router.get("/", verifyTokenUser, mirrorController.getMirrors);
 
 // Obtenir un miroir spécifique
-router.get("/:id", verifyTokenUser, mirrorController.getMirror);
+router.get("/:id", verifyTokenUser, mirrorController.getMirrorById);
 
 // Créer un nouveau miroir
 router.post("/", verifyTokenUser, mirrorController.createMirror);

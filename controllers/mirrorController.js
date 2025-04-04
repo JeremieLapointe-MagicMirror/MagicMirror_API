@@ -6,68 +6,102 @@ function sanitizeField(field) {
   return validator.escape(field);
 }
 
-// Obtenir tous les miroirs de l'utilisateur courant
 exports.getMirrors = async function (req, res) {
   try {
     const userId = req.user.id;
+    const isAdmin = req.user.type === "admin";
 
-    // Récupérer les miroirs associés à l'utilisateur
-    const user = await User.findByPk(userId, {
-      include: [
-        {
-          model: Mirror,
-          through: { attributes: [] }, // Ne pas inclure les attributs de la table de jointure
-        },
-      ],
-    });
+    let mirrors;
 
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    if (isAdmin) {
+      // Pour les admins: tous les miroirs
+      mirrors = await Mirror.findAll({
+        order: [["name", "ASC"]],
+      });
+    } else {
+      // Pour les utilisateurs normaux: seulement leurs miroirs
+      const user = await User.findByPk(userId, {
+        include: [
+          {
+            model: Mirror,
+            through: UserMirror,
+          },
+        ],
+      });
+
+      mirrors = user ? user.Mirrors : [];
     }
 
-    return res.status(200).json({ mirrors: user.Mirrors });
+    // Formater les données pour correspondre au modèle Android
+    const formattedMirrors = mirrors.map((mirror) => ({
+      id: mirror.idMirror,
+      name: mirror.name,
+      isActive:
+        mirror.lastUpdate &&
+        new Date(mirror.lastUpdate) >
+          new Date(Date.now() - 24 * 60 * 60 * 1000),
+      lastSeen: mirror.lastUpdate
+        ? new Date(mirror.lastUpdate).toLocaleString()
+        : "Jamais",
+      ipAddress: mirror.ipAddress || "Non disponible",
+      widgets: mirror.config ? JSON.parse(mirror.config).widgets || [] : [],
+    }));
+
+    return res.status(200).json(formattedMirrors);
   } catch (err) {
     console.error("Erreur lors de la récupération des miroirs:", err);
-    return res.status(500).json({
-      message: "Erreur serveur lors de la récupération des miroirs",
-      details: err.message,
-    });
+    return res
+      .status(500)
+      .json({ message: "Erreur serveur", error: err.message });
   }
 };
 
-// Obtenir un miroir spécifique
-exports.getMirror = async function (req, res) {
+exports.getMirrorById = async function (req, res) {
   try {
-    const mirrorId = req.params.id;
+    const { id } = req.params;
     const userId = req.user.id;
+    const isAdmin = req.user.type === "admin";
 
-    // Vérifier si l'utilisateur a accès au miroir
-    const userMirror = await UserMirror.findOne({
-      where: {
-        userId: userId,
-        mirrorId: mirrorId,
-      },
-    });
-
-    if (!userMirror) {
-      return res
-        .status(403)
-        .json({ message: "Accès non autorisé à ce miroir" });
-    }
-
-    const mirror = await Mirror.findByPk(mirrorId);
+    // Vérifier l'existence du miroir
+    const mirror = await Mirror.findByPk(id);
 
     if (!mirror) {
       return res.status(404).json({ message: "Miroir non trouvé" });
     }
 
-    return res.status(200).json({ mirror });
+    // Si l'utilisateur n'est pas admin, vérifier qu'il a accès à ce miroir
+    if (!isAdmin) {
+      const hasAccess = await UserMirror.findOne({
+        where: {
+          userId: userId,
+          mirrorId: id,
+        },
+      });
+
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Accès refusé à ce miroir" });
+      }
+    }
+
+    // Formater la réponse
+    const formattedMirror = {
+      id: mirror.idMirror,
+      name: mirror.name,
+      isActive:
+        mirror.lastUpdate &&
+        new Date(mirror.lastUpdate) >
+          new Date(Date.now() - 24 * 60 * 60 * 1000),
+      lastSeen: mirror.lastUpdate
+        ? new Date(mirror.lastUpdate).toLocaleString()
+        : "Jamais",
+      ipAddress: mirror.ipAddress || "Non disponible",
+      widgets: mirror.config ? JSON.parse(mirror.config).widgets || [] : [],
+    };
+
+    return res.status(200).json(formattedMirror);
   } catch (err) {
     console.error("Erreur lors de la récupération du miroir:", err);
-    return res.status(500).json({
-      message: "Erreur serveur lors de la récupération du miroir",
-      details: err.message,
-    });
+    return res.status(500).json({ message: "Erreur serveur" });
   }
 };
 
