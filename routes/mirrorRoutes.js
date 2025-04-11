@@ -18,4 +18,6 @@ router.put("/:id", verifyTokenUser, mirrorController.updateMirror);
 // Supprimer un miroir
 router.delete("/:id", verifyTokenUser, mirrorController.deleteMirror);
 
+router.patch("/:id/state", verifyTokenUser, mirrorController.updateMirrorState);
+
 module.exports = router;

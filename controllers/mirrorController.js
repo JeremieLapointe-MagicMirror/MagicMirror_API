@@ -278,3 +278,66 @@ exports.deleteMirror = async function (req, res) {
     });
   }
 };
+
+// Mettre à jour l'état du miroir (disponibilité de l'écran)
+exports.updateMirrorState = async function (req, res) {
+  try {
+    const mirrorId = req.params.id;
+    const { isActive, lastUpdate } = req.body;
+
+    // Vérifier si l'utilisateur a accès au miroir
+    const userMirror = await UserMirror.findOne({
+      where: {
+        userId: req.user.id,
+        mirrorId: mirrorId,
+      },
+    });
+
+    if (!userMirror && !req.user.isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Accès non autorisé à ce miroir" });
+    }
+
+    // Vérifier si le miroir existe
+    const mirror = await Mirror.findByPk(mirrorId);
+    if (!mirror) {
+      return res.status(404).json({ message: "Miroir non trouvé" });
+    }
+
+    // Préparer les données à mettre à jour
+    const updateData = {};
+
+    // Mise à jour de l'état actif/inactif
+    if (isActive !== undefined) {
+      updateData.isActive = isActive;
+    }
+
+    // Mise à jour de la dernière utilisation si fournie
+    if (lastUpdate !== undefined) {
+      updateData.lastUpdate = new Date(lastUpdate);
+    } else if (isActive === true) {
+      // Si l'état est actif, mettre à jour automatiquement la dernière utilisation
+      updateData.lastUpdate = new Date();
+    }
+
+    // Appliquer les mises à jour
+    await Mirror.update(updateData, {
+      where: { idMirror: mirrorId },
+    });
+
+    // Récupérer le miroir mis à jour
+    const updatedMirror = await Mirror.findByPk(mirrorId);
+
+    return res.status(200).json({
+      message: "État du miroir mis à jour avec succès",
+      mirror: updatedMirror,
+    });
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour de l'état du miroir:", err);
+    return res.status(500).json({
+      message: "Erreur serveur lors de la mise à jour de l'état du miroir",
+      details: err.message,
+    });
+  }
+};
